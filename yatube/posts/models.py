@@ -36,5 +36,5 @@ class Post(models.Model):
 	group = models.ForeignKey(Group, blank=True, null=True, 
 		                  			 on_delete=models.CASCADE)
 	
-	def __str(self):
+	def __str__(self):
 		return self.text
