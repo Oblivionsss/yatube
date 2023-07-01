@@ -25,4 +25,5 @@ def group_posts(request, slug):
 	return render(request, "group.html", {"group": group, "posts": posts})
 
 
-
+def new_post(request):
+	return render(request, "new_post.html", )
