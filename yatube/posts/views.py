@@ -1,7 +1,8 @@
 from django.shortcuts import render, get_object_or_404
-
+from django.views.generic import CreateView
+from django.urls import reverse_lazy
 from .models import Post, Group
-
+from .form import CreateNewPostModelForm
 
 def index(request):
 	"""
@@ -25,5 +26,8 @@ def group_posts(request, slug):
 	return render(request, "group.html", {"group": group, "posts": posts})
 
 
-def new_post(request):
-	return render(request, "new_post.html", )
+class NewPost(CreateView):
+	form_class = CreateNewPostModelForm
+	success_url = reverse_lazy("index")
+	template_name = "new_post.html"
+	
