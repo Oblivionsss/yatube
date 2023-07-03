@@ -23,6 +23,3 @@ def group_posts(request, slug):
 	# Ограничиваем выборку по группе и количеству данных 
 	posts = Post.objects.filter(group = group).order_by("-pub_date")[:12]
 	return render(request, "group.html", {"group": group, "posts": posts})
-
-
-
