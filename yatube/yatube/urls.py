@@ -17,15 +17,13 @@ from django.contrib import admin
 from django.urls import path, include
 
 urlpatterns = [
-    # Обработчик для главной страницы
-    path("", include("posts.urls")),
-    
-    # Регистрация и авторизация 
-    path("auth/", include("users.urls")),
-
-    #   
-    path("auth/", include("django.contrib.auth.urls")),
-
     # раздел администратора
     path("admin/", admin.site.urls),
+    # flatpages
+    path('about/', include('django.contrib.flatpages.urls')),
+    # Регистрация и авторизация 
+    path("auth/", include("users.urls")),
+    path("auth/", include("django.contrib.auth.urls")),
+    # Обработчик для главной страницы
+    path("", include("posts.urls")),
 ]
