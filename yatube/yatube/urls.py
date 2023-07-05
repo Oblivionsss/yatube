@@ -15,6 +15,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.contrib.flatpages import views
 
 urlpatterns = [
     # раздел администратора
@@ -26,4 +27,9 @@ urlpatterns = [
     path("auth/", include("django.contrib.auth.urls")),
     # Обработчик для главной страницы
     path("", include("posts.urls")),
+]
+
+urlpatterns += [
+        path('about-author/', views.flatpage, {'url': '/about-author/'}, name='about-author'),
+        path('about-spec/', views.flatpage, {'url': '/about-spec/'}, name='about-spec'),
 ]
