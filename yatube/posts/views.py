@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
-from .models import Post, Group
+from .models import Post, Group, User
 from .form import PostForm
 
 
@@ -72,11 +72,30 @@ def new_post(request):
 def profile(request, username):
 	"""
 	Страница - профайл пользователя.
+	user_profile - запрашиваемый пользователь,
+	list_post - список постов запрашиваемого пользователя.
 	"""
+	# проверка username
+	user_profile = get_object_or_404(User, username = username)
+	# список постов запрашиваемого пользователя
+	list_post = Post.objects.filter(author=user_profile).all()
+	# показываем по пять страниц
+	list_post_paginator = Paginator(list_post, 5)
+	# переменная url с количеством страниц
+	page_number = request.GET.get('page')
+	# получить записи с нужным смещением
+	page = list_post_paginator.get_page(page_number)
+
+	count_post = len(list_post)
 	return render(
 		request,
-		profile.html,
-		{}
+		'profile.html',
+		{
+			'page' : page,
+			'count_post' : count_post,
+			'user_profile': user_profile,
+			'list_post_paginator' : list_post_paginator,
+		}
 	)
 
 
@@ -84,19 +103,21 @@ def post_view(request, username, post_id):
 	"""
 	Страница просмотра записи.
 	"""
-	return render(
-		request,
-		post.html,
-		{}
-	)
+	pass
+	# return render(
+	# 	request,
+	# 	post.html,
+	# 	{}
+	# )
 
 
 def post_edit(request, username, post_id):
 	"""
 	Страница редактирования записи.
 	"""
-	return render(
-		request,
-		post_new.html,
-		{}
-	)
+	pass
+	# return render(
+	# 	request,
+	# 	post_new.html,
+	# 	{}
+	# )
