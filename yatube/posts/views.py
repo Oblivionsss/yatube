@@ -73,7 +73,8 @@ def profile(request, username):
 	"""
 	Страница - профайл пользователя.
 	user_profile - запрашиваемый пользователь,
-	list_post - список постов запрашиваемого пользователя.
+	list_post - список постов запрашиваемого пользователя,
+	paginator
 	"""
 	# проверка username
 	user_profile = get_object_or_404(User, username = username)
@@ -103,7 +104,7 @@ def post_view(request, username, post_id):
 	"""
 	Страница просмотра записи.
 	"""
-	pass
+	
 	# return render(
 	# 	request,
 	# 	post.html,
