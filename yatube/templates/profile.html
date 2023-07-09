@@ -27,7 +27,7 @@
                                         <li class="list-group-item">
                                                 <div class="h6 text-muted">
                                                     Количество записей: {{ count_post }}
-                                                </div>
+                                                </div> 
                                         </li>
                                 </ul>
                         </div>
@@ -40,16 +40,16 @@
                     <div class="card mb-3 mt-1 shadow-sm">
                             <div class="card-body">
                                     <p class="card-text">
-                                             Ссылка на страницу автора в атрибуте href; username автора в тексте ссылки
-                                            <a href="/leo/"><strong class="d-block text-gray-dark">@leo</strong></a>
+                                             <!-- Ссылка на страницу автора в атрибуте href; username автора в тексте ссылки -->
+                                            <a href="{% url 'profile' username=user_profile.username %}"><strong class="d-block text-gray-dark">{{ user_profile.username}}</strong></a>
                                             <p>{{ post.text|linebreaksbr }}</p>
                                     </p>
                                     <div class="d-flex justify-content-between align-items-center">
                                             <div class="btn-group ">
                                                     <!-- Ссылка на страницу записи в атрибуте href-->
-                                                    <a class="btn btn-sm text-muted" href="/leo/37/" role="button">Добавить комментарий</a>
+                                                    <a class="btn btn-sm text-muted" href="{% url 'post' username=user_profile.username post_id=post.id %}" role="button">Добавить комментарий</a>
                                                     <!-- Ссылка на редактирование, показывается только автору записи -->
-                                                    <a class="btn btn-sm text-muted" href="/leo/37/edit" role="button">Редактировать</a>
+                                                    <a class="btn btn-sm text-muted" href="{% url 'post_edit' username=user_profile.username post_id=post.id %}" role="button">Редактировать</a>
                                             </div>
                                             <!-- Дата публикации  -->
                                             <small class="text-muted">Дата публикации: {{ post.pub_date|date:"d M Y" }}</small>

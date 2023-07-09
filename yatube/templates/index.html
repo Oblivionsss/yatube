@@ -3,6 +3,9 @@
 {% block header %}Последние обновления на сайте{% endblock %}
 {% block content %}
 
+{% if post1 %}
+{{ post1 }}
+{% endif %}
     {% for post in page %}
     <h3>
         Автор: {{ post.author.get_full_name }}, Дата публикации: {{ post.pub_date|date:"d M Y" }}

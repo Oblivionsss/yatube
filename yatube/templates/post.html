@@ -3,6 +3,13 @@
 {% block header %}Последние обновления на сайте{% endblock %}
 {% block content %}
 
+	{% if msg %}
+    <div class="alert alert-danger" role="alert">
+        {{ msg }}
+        {{ msg1 }}
+    </div>
+	{% endif %}
+
 	<main role="main" class="container">
 	    <div class="row">
 	            <div class="col-md-3 mb-3 mt-1">
@@ -10,11 +17,11 @@
                                 <div class="card-body">
                                         <div class="h2">
                                             <!-- Имя автора -->
-                                            {{ user_profile.name }}
+                                            {{ author.name }}
                                         </div>
                                         <div class="h3 text-muted">
                                              <!-- username автора -->
-                                             {{ user_profile.username }}
+                                             {{ author.username }}
                                         </div>
                                 </div>
                                 <ul class="list-group list-group-flush">
@@ -40,7 +47,7 @@
 				                        <div class="card-body">
 				                                <p class="card-text">
 				                                        <!-- Ссылка на страницу автора в атрибуте href; username автора в тексте ссылки -->
-				                                        <a href="/leo/"><strong class="d-block text-gray-dark">@leo</strong></a>
+				                                        <a href="{% url 'profile' username=author.username %}"><strong class="d-block text-gray-dark">{{ author.username }}</strong></a>
 				                                        <!-- Текст поста -->
 				                                        <p>
 				                                        	{{ post.text }}
@@ -50,7 +57,7 @@
 				                                        {% if check_user %}
 				                                        <div class="btn-group ">
 				                                                <!-- Ссылка на редактирование, показывается только автору записи -->
-				                                                <a class="btn btn-sm text-muted" href="{% url 'post_edit'  %}" role="button">Редактировать</a>
+				                                                <a class="btn btn-sm text-muted" href="{% url 'post_edit' username=author.username post_id=post.id %}" role="button">Редактировать</a>
 				                                        </div>
 				                                        {% endif %}
 				                                        <!-- Дата публикации  -->
@@ -60,5 +67,5 @@
 				                </div>
 				     </div>
     	</div>
-</main>
+	</main>
 {% endblock %}

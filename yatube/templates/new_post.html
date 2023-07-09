@@ -4,6 +4,9 @@
 {% block content %}
 {% load users_filter %}
 
+{% if check_user %}
+<form method="post" action="{% url 'post_edit' username=author.username post_id=post_id %}">
+{% else %}
 <form method="post" action="{% url 'new_post' %}">
     {% csrf_token %}
 
@@ -28,5 +31,5 @@
     </div><!--col-md-6-->
 
 </form><!--form-->
-
+{% endif %}
 {% endblock %}

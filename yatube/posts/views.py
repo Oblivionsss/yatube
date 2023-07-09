@@ -51,7 +51,7 @@ def group_posts(request, slug):
 
 
 @login_required
-def new_post(request):
+def new_post(request, ):
 	"""
 	Страница создания нового поста.
 	form - форма на основе Post,
@@ -65,7 +65,7 @@ def new_post(request):
 	post = form.save(commit=False)
 	post.author = request.user
 	post.save()
-	
+
 	return redirect('index')
 
 
@@ -82,13 +82,20 @@ def profile(request, username):
 	# проверка username
 	user_profile = get_object_or_404(User, username = username)
 	# список постов запрашиваемого пользователя
-	list_post = Post.objects.filter(author=user_profile).all()
+	list_post =( Post.objects
+	     .filter(author=user_profile)
+		 .order_by('-pub_date').all()
+		)
 	# показываем по пять страниц
 	list_post_paginator = Paginator(list_post, 5)
 	# переменная url с количеством страниц
 	page_number = request.GET.get('page')
 	# получить записи с нужным смещением
 	page = list_post_paginator.get_page(page_number)
+	#проверка авторизованности просматриваемого поста
+	check_login_author = None
+	if request.user == username:
+		check_login_author = True
 
 	count_post = len(list_post)
 	
@@ -100,6 +107,7 @@ def profile(request, username):
 			'count_post' : count_post,
 			'user_profile': user_profile,
 			'list_post_paginator' : list_post_paginator,
+			'check_login_author': check_login_author,
 		}
 	)
 
@@ -109,16 +117,33 @@ def post_view(request, username, post_id):
 	Страница просмотра записи.
 	"""
 	post = get_object_or_404(Post, pk=post_id)
+	
+	#проверка корректности адреса, в части связанной с username
+	if post.author.username != username:
+		return render (
+			request,
+			'post.html',
+			{
+				'msg': 'Запрашиваемая страница не существует!',
+			}
+	)
 
+	# проверка автора поста - авторизованному пользователю
 	check_user = None
-	if post.author == request.user:
+	if str(post.author) == str(request.user.username):
 		check_user = True
+	
+	# подсчет количества постов автора испрашиваемого поста
+	user_profile = get_object_or_404(User, username = username)
+	count_post = len(Post.objects.filter(author=user_profile).all())
+	
 	return render(
 		request,
 		'post.html',
 		{
 			'post': post,
-			'userame': request.user,
+			'author': post.author,
+			'count_post': count_post,
 			'check_user': check_user,
 		}
 	)
@@ -128,9 +153,50 @@ def post_edit(request, username, post_id):
 	"""
 	Страница редактирования записи.
 	"""
-	pass
-	# return render(
-	# 	request,
-	# 	post_new.html,
-	# 	{}
-	# )
+	post = get_object_or_404(Post, pk=post_id)
+	#проверка корректности адреса, в части связанной с username
+	if post.author.username != username:
+		return render (
+			request,
+			'post.html',
+			{
+				'msg': 'Запрашиваемая страница не существует!',
+			}
+	)
+
+	check_user = None
+	if str(post.author) == str(request.user.username):
+		check_user = True
+	
+	# подсчет количества постов автора испрашиваемого поста
+	user_profile = get_object_or_404(User, username = username)
+	count_post = len(Post.objects.filter(author=user_profile).all())
+	
+	if check_user == None:
+		return render (
+			request,
+			'post.html',
+			{
+				'post': post,
+				'author': post.author,
+				'count_post': count_post,
+				'check_user': check_user,
+				'msg': 'У вас отсутствуют права на редактирование этого поста!', 
+			}
+		)
+	
+	if request.POST:
+		form = PostForm(request.POST, instance=post)
+		if form.is_valid():
+			form.save()
+			return redirect('index')
+
+	form = PostForm(instance=post)
+	return render(
+		request, 
+		"new_post.html", 
+		{
+			"form": form,
+			'check_user': check_user,
+		}
+	)
