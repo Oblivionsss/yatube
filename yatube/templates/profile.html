@@ -49,7 +49,9 @@
                                                     <!-- Ссылка на страницу записи в атрибуте href-->
                                                     <a class="btn btn-sm text-muted" href="{% url 'post' username=user_profile.username post_id=post.id %}" role="button">Добавить комментарий</a>
                                                     <!-- Ссылка на редактирование, показывается только автору записи -->
+                                                    {% if check_login_author %}
                                                     <a class="btn btn-sm text-muted" href="{% url 'post_edit' username=user_profile.username post_id=post.id %}" role="button">Редактировать</a>
+                                                    {% endif %}
                                             </div>
                                             <!-- Дата публикации  -->
                                             <small class="text-muted">Дата публикации: {{ post.pub_date|date:"d M Y" }}</small>

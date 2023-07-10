@@ -94,7 +94,7 @@ def profile(request, username):
 	page = list_post_paginator.get_page(page_number)
 	#проверка авторизованности просматриваемого поста
 	check_login_author = None
-	if request.user == username:
+	if str(request.user) == str(username):
 		check_login_author = True
 
 	count_post = len(list_post)
@@ -185,12 +185,15 @@ def post_edit(request, username, post_id):
 			}
 		)
 	
+	# Если есть request.POST - значит изменить данные
 	if request.POST:
 		form = PostForm(request.POST, instance=post)
 		if form.is_valid():
 			form.save()
 			return redirect('index')
 
+	# Если данных POST нет, загрузить форму редактирования поста
+	modified = True
 	form = PostForm(instance=post)
 	return render(
 		request, 
@@ -198,5 +201,8 @@ def post_edit(request, username, post_id):
 		{
 			"form": form,
 			'check_user': check_user,
+			'modified': modified,
+			'post_id': post_id,
+			'author': post.author,
 		}
 	)

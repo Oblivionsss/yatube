@@ -3,7 +3,6 @@ import pytest
 from django import forms
 from posts.models import Post
 
-
 class TestNewView:
 
     @pytest.mark.django_db(transaction=True)
@@ -13,7 +12,7 @@ class TestNewView:
         except Exception as e:
             assert False, f'''Страница `/new` работает неправильно. Ошибка: `{e}`'''
         if response.status_code in (301, 302):
-            response = user_client.get('/new/')
+            response = user_client.get('/new')
         assert response.status_code != 404, 'Страница `/new/` не найдена, проверьте этот адрес в *urls.py*'
         assert 'form' in response.context, 'Проверьте, что передали форму `form` в контекст страницы `/new/`'
         assert len(response.context['form'].fields) == 2, 'Проверьте, что в форме `form` на страницу `/new/` 2 поля'
