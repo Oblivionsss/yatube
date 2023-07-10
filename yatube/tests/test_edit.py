@@ -1,4 +1,5 @@
 import pytest
+import re
 
 from django import forms
 from posts.models import Post
@@ -80,4 +81,5 @@ class TestEdit:
 		response = user_client.get('')
 		assert response.status_code != 404, \
 			'Страница index не найдена, проверьте этот адрес в *urls.py*'
-		
+		assert re.search(text, response.content), \
+			'Объект post не найден!'
