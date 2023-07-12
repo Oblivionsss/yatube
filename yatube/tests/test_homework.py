@@ -25,6 +25,7 @@ def search_field(fields, attname):
 
 class TestPost:
 
+	# Проверка корректности модели
 	def test_post_model(self):
 		# проверка text в модели Post
 		model_fields = Post._meta.fields
@@ -63,5 +64,16 @@ class TestPost:
 		assert group_field.blank, \
 			f'''Свойство `group` модели Post должно быть blank=True'''
 		assert group_field.null, \
-			f'''Свойство `group` модели Post должно быть null=True''
-	
+			f'''Свойство `group` модели Post должно быть null=True'''
+
+	# Проверка модели с помощью создания поста
+	@pytest.mark.django_db(transaction=True)
+	def test_post_create(self, user):
+		text = 'Тестовый пост'
+		author = user
+
+		assert Post.objects.all().count() == 0
+
+		post = Post.objects.create(text=text, author=author) 
+		assert Post.objects.all().count() == 1
+		

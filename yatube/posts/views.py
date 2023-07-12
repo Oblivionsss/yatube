@@ -116,17 +116,8 @@ def post_view(request, username, post_id):
 	"""
 	Страница просмотра записи.
 	"""
-	post = get_object_or_404(Post, pk=post_id)
-	
-	#проверка корректности адреса, в части связанной с username
-	if post.author.username != username:
-		return render (
-			request,
-			'post.html',
-			{
-				'msg': 'Запрашиваемая страница не существует!',
-			}
-	)
+	# Проверка корректности адреса
+	post = get_object_or_404(Post, pk=post_id, author__username=username)
 
 	# проверка автора поста - авторизованному пользователю
 	check_user = None
@@ -135,7 +126,7 @@ def post_view(request, username, post_id):
 	
 	# подсчет количества постов автора испрашиваемого поста
 	user_profile = get_object_or_404(User, username = username)
-	count_post = len(Post.objects.filter(author=user_profile).all())
+	count_post = Post.objects.filter(author=user_profile).all().count()
 	
 	return render(
 		request,
@@ -153,16 +144,8 @@ def post_edit(request, username, post_id):
 	"""
 	Страница редактирования записи.
 	"""
-	post = get_object_or_404(Post, pk=post_id)
-	#проверка корректности адреса, в части связанной с username
-	if post.author.username != username:
-		return render (
-			request,
-			'post.html',
-			{
-				'msg': 'Запрашиваемая страница не существует!',
-			}
-	)
+	# Проверка корректности адреса
+	post = get_object_or_404(Post, pk=post_id, author__username=username)
 
 	check_user = None
 	if str(post.author) == str(request.user.username):
@@ -170,7 +153,7 @@ def post_edit(request, username, post_id):
 	
 	# подсчет количества постов автора испрашиваемого поста
 	user_profile = get_object_or_404(User, username = username)
-	count_post = len(Post.objects.filter(author=user_profile).all())
+	count_post = Post.objects.filter(author=user_profile).all().count()
 	
 	if check_user == None:
 		return render (
