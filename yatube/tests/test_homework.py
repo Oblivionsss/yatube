@@ -76,4 +76,83 @@ class TestPost:
 
 		post = Post.objects.create(text=text, author=author) 
 		assert Post.objects.all().count() == 1
+		assert Post.objects.get(text=text, author=author).pk == post.pk
+	
+	# Проверка модели Post в админке 
+	def test_post_admin(self):
+
+		admin_site = site
+
+		assert Post in admin_site._registry, \
+			f'''Зарегистрируйте модель Post в модели admin'''
 		
+		admin_model = admin_site._registry[Post]
+
+		assert 'text' in admin_model.list_display, \
+			f'''Добавьте `text` в для отображения в списке адм. сайта'''
+		assert 'pub_date' in admin_model.list_display, \
+			f'''Добавьте `pub_date` в для отображения в списке адм. сайта'''
+		assert 'author' in admin_model.list_display, \
+			f'''Добавьте `author` в для отображения в списке адм. сайта'''
+		
+		assert 'text' in admin_model.search_fields, \
+			f'''Добавьте `text` для поиска в адм. сайте'''
+		
+		assert 'pub_date' in admin_model.list_filter, \
+			f'''Добавьте `pub_date` для фильтрации в адм. сайте'''
+		
+		assert hasattr(admin_model, 'empty_value_display'), \
+			f'''Добавьте `empty_value_display` для пустых полей'''
+		
+
+class TestGroup:
+	
+	# Проверка корректности модели
+	def test_group_model(self):
+		model_fields = Group._meta.fields
+		title_field = search_field(model_fields, 'title')
+		assert title_field is not None, \
+			f'''Не найден атрибут `title`, проверьте корректность модели Group'''
+		assert type(title_field) == fields.CharField, \
+			f'''Свойство `title` модели Group должно быть текстовым CharField'''
+		assert title_field.max_length == 200, \
+			f'''Свойство `title` модели Group должно иметь max_length=250'''
+
+		description_field = search_field(model_fields, 'description')
+		assert description_field is not None, \
+			f'''Не найден атрибут `description`, проверьте корректность модели Group'''
+		assert type(description_field) == fields.TextField, \
+			f'''Свойство `description` модели Post должно быть текстовым TextField'''
+		
+		slug_field = search_field(model_fields, 'slug')
+		assert slug_field is not None, \
+			f'''Не найден атрибут `slug`, проверьте корректность модели Group'''
+		assert type(slug_field) == fields.SlugField, \
+			f'''Свойство `slug` модели Post должно быть текстовым SlugField'''
+		assert slug_field.max_length == 25, \
+			f'''Свойство `slug` модели Group должно иметь max_length=25'''
+		assert slug_field.unique, \
+			f'''Свойство `slug` модели Group должно иметь unique=True (уникальным)'''
+		
+	# Проверка модели с помощью создания группы
+	@pytest.mark.django_db(transaction=True)
+	def test_group_create(self, user):
+		text = 'Тестовый пост'
+		author = user
+
+		assert Post.objects.all().count() == 0
+
+		post = Post.objects.create(text=text, author=author) 
+		assert Post.objects.all().count() == 1
+		assert Post.objects.get(text=text, author=author).pk == post.pk
+
+		title = 'Тестовая группа'
+		slug = 'test-link'
+		description = 'Тестовое описание группы'
+		group = Group.objects.create(title=title, slug=slug, description=description)
+		assert Group.objects.all().count() == 1
+		assert Group.objects.get(slug=slug).pk == group.pk
+
+		post.group = group
+		post.save()
+		assert Post.objects.get(text=text, author=author).group == group
