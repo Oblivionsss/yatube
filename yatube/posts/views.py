@@ -25,7 +25,10 @@ def index(request):
 	return render(
 		request,
 		'index.html',
-		{'page': page, 'paginator': paginator}
+		{
+			'page': page, 
+			'paginator': paginator,
+		}
    )
 
 
@@ -42,11 +45,22 @@ def group_posts(request, slug):
 	  .filter(group = group)
 	  .order_by("-pub_date")[:12]
 	)
+	# показывать по 10 записей на странице.
+	paginator = Paginator(posts, 10)
+	# переменная в URL с номером запрошенной страницы.
+	page_number = request.GET.get('page')
+	# получить записи с нужным смещением.
+	page = paginator.get_page(page_number)
+
 
 	return render(
 		request, 
 		"group.html", 
-		{"group": group, "posts": posts}
+		{
+			"group": group,
+			"page": page,
+			"paginator": paginator,
+		}
 	)
 
 
