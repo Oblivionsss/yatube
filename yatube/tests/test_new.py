@@ -36,5 +36,40 @@ class TestNew:
 			f'''Проверьте, что в форме `form` на странице `/new/` поле `text` не обязательно'''
 
 
-	def test_new_view_post(self, user_client):
-		pass
+	def test_new_view_post(self, user_client, user, group):
+		# Проверка создания поста
+		text1 = "Проверка нового поста 1"
+		try:
+			response = user_client.get('/new')
+		except Exception as e:
+			assert False, \
+			f'''Страница /new/ работает неправильно, проверьте её корректность, ошибка {e}'''
+		if response.status_code in (301, 302):
+			response = user_client.get('/new/')
+		url = '/new/' if response.status_code in (301, 302) else '/new'
+		
+		response = user_client.post(url, data={'text': text1, 'group': group.id})
+		
+		assert response.status_code in (301, 302), \
+			f'''Проверьте, что после создания поста Вы перенаправляетесь на стартовую страницу`/`'''
+		post = Post.objects.filter(author=user, text=text1, group=group.id).first()
+		assert post is not None, \
+			f'''Проверьте, что вы сохранили новый пост при отправки формы на странице `/new/`'''
+		assert response.url == '/', \
+			f'''Проверьте, что после создания поста Вы перенаправляется на стартовую страницу `/`'''
+
+		# Проверка создания поста без обязательного поля `group`
+		text2 = "Проверка второго поста"
+		response = user_client.post(url, data={'text': text1, })
+		assert response.status_code in (301, 302), \
+			f'''Проверьте, что после создания поста без группы Вы перенаправляетесь на стартовую страницу `/`'''
+		post = Post.objects.filter(author=user, text=text1, group__isnull=True).first()
+		assert post is not None, \
+			f'''Проверьте, что вы сохранили новый пост при отправки формы на странице `/new/`'''
+		assert response.url == '/', \
+			f'''Проверьте, что после создания поста Вы перенаправляется на стартовую страницу `/`'''
+
+		# Проверка создания поста без данных, и отсутствие вызова ошибок
+		response = user_client.post(url)
+		assert response.status_code == 200, \
+			f'''Проверьте, что при некорректном создании поста Вы возвращаетсь на `/new` с указанием на ошибки'''
