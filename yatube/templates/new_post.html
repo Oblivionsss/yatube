@@ -4,10 +4,10 @@
 {% block content %}
 {% load users_filter %}
 
-{% if check_user %}
-<form method="post" action="{% url 'post_edit' username=author.username post_id=post_id %}">
+{% if post %}
+<form method="post" enctype="multipart/form-data" action="{% url 'post_edit' username=post.author.username post_id=post.pk %}">
 {% else %}
-<form method="post" action="{% url 'new_post' %}">
+<form method="post" enctype="multipart/form-data" action="{% url 'new_post' %}">
 {% endif %}
     {% csrf_token %}
 
@@ -27,7 +27,7 @@
 
     <div class="col-md-6 offset-md-4">
         <button type="submit" class="btn btn-primary">
-            {% if check_user %}Сохранить{% else %}Создать новую запись{% endif %}
+            {% if post %}Сохранить{% else %}Создать новую запись{% endif %}
         </button>
     </div><!--col-md-6-->
 

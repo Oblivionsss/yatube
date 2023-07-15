@@ -158,48 +158,51 @@ def post_edit(request, username, post_id):
 	"""
 	Страница редактирования записи.
 	"""
-	# Проверка корректности адреса
-	post = get_object_or_404(Post, pk=post_id, author__username=username)
+	profile = get_object_or_404(User, username=username)
+	post = get_object_or_404(Post, pk=post_id, author=profile)
+	count_post = Post.objects.filter(author=profile).all().count()
+	post_edit = True
 
-	check_user = None
-	if str(post.author) == str(request.user.username):
-		check_user = True
-	
-	# подсчет количества постов автора испрашиваемого поста
-	user_profile = get_object_or_404(User, username = username)
-	count_post = Post.objects.filter(author=user_profile).all().count()
-	
-	if check_user == None:
-		return render (
-			request,
-			'post.html',
-			{
-				'post': post,
-				'author': post.author,
-				'count_post': count_post,
-				'check_user': check_user,
-				'msg': 'У вас отсутствуют права на редактирование этого поста!', 
-			}
+	if request.user != profile:
+		return redirect(
+			'post', 
+			username=username,
+			post_id=post_id,
 		)
 	
-	# Если есть request.POST - значит изменить данные
-	if request.POST:
-		form = PostForm(request.POST, instance=post)
+	form = PostForm(
+		request.POST or None,
+		files=request.FILES or None,
+		instance=post,
+		)
+	
+	if request.method == 'POST':
 		if form.is_valid():
 			form.save()
-			return redirect('index')
-
-	# Если данных POST нет, загрузить форму редактирования поста
-	modified = True
-	form = PostForm(instance=post)
+			return redirect(
+				'post',
+				username=request.user.username,
+				post_id=post_id,
+			)
+	
 	return render(
-		request, 
-		"new_post.html", 
+		request,
+		'new_post.html',
 		{
-			"form": form,
-			'check_user': check_user,
-			'modified': modified,
-			'post_id': post_id,
-			'author': post.author,
+			'form': form,
+			'post': post,
 		}
 	)
+
+def page_not_found(request, exception):
+	return render(
+		request,
+		"misc/404.html",
+		{
+			"path": request.path
+		},
+		status=404
+	)
+
+def server_error(request):
+	return render(request, "misc/500.html", status=500)

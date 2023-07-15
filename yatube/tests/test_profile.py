@@ -55,3 +55,5 @@ class TestProfileView:
         # записей у автора new_user не существует
         assert len(page_context.object_list) == 0, \
             f'''Проверьте, что вы передали статьи в контекст страницы /username/'''
+
+        
