@@ -16,7 +16,7 @@ class TestProfileView:
     def test_profile_view_get(self, post_with_group, client):
         try:
             response = client.get(f'/{post_with_group.author.username}')
-        except Exception:
+        except Exception as e:
             assert False, \
             f'''Страница /username/ работает неправильно!, ошибка {e}'''
         if response.status_code in (301, 302):
@@ -43,7 +43,7 @@ class TestProfileView:
         new_user.save()
         try:
             response = client.get(f'/{new_user.username}')
-        except Exception:
+        except Exception as e:
             assert False, \
             f'''Страница /username/ работает неправильно!, ошибка {e}'''
         if response.status_code in (301, 302):
