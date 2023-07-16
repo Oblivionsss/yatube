@@ -132,17 +132,11 @@ def post_view(request, username, post_id):
 	"""
 	# Проверка корректности адреса
 	post = get_object_or_404(Post, pk=post_id, author__username=username)
-
-	# проверка автора поста - авторизованному пользователю
-	check_user = None
-	if str(post.author) == str(request.user.username):
-		check_user = True
 	
 	# подсчет количества постов автора испрашиваемого поста
 	user_profile = get_object_or_404(User, username = username)
-	count_post = Post.objects.filter(author=user_profile).all().count()
-	form = CommentForm(request.POST or None)
 
+	form = CommentForm(request.POST or None)
 
 	items = (Comment.objects
 	 	.filter(post=post)
@@ -156,8 +150,6 @@ def post_view(request, username, post_id):
 			'items': items,
 			'form': form,
 			'author': post.author,
-			'count_post': count_post,
-			'check_user': check_user,
 		}
 	)
 
