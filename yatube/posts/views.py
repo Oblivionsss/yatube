@@ -1,8 +1,8 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
-from .models import Post, Group, User
-from .form import PostForm
+from .models import Post, Group, User, Comment
+from .form import PostForm, CommentForm
 
 
 def index(request):
@@ -96,7 +96,7 @@ def profile(request, username):
 	# проверка username
 	user_profile = get_object_or_404(User, username = username)
 	# список постов запрашиваемого пользователя
-	list_post =( Post.objects
+	list_post = (Post.objects
 	     .filter(author=user_profile)
 		 .order_by('-pub_date').all()
 		)
@@ -141,12 +141,20 @@ def post_view(request, username, post_id):
 	# подсчет количества постов автора испрашиваемого поста
 	user_profile = get_object_or_404(User, username = username)
 	count_post = Post.objects.filter(author=user_profile).all().count()
-	
+	form = CommentForm(request.POST or None)
+
+
+	items = (Comment.objects
+	 	.filter(post=post)
+		.order_by("-created")
+	)
 	return render(
 		request,
 		'post.html',
 		{
 			'post': post,
+			'items': items,
+			'form': form,
 			'author': post.author,
 			'count_post': count_post,
 			'check_user': check_user,
@@ -206,3 +214,25 @@ def page_not_found(request, exception):
 
 def server_error(request):
 	return render(request, "misc/500.html", status=500)
+
+
+@login_required
+def add_comment(request, username, post_id, ):
+	# Проверка существования поста, к которому будет добавлен кооментарий
+	post = get_object_or_404(Post, pk=post_id, author__username=username)
+
+	form = CommentForm(request.POST or None)
+	# проверка на наличие метода is_valid, и валидность.
+	if not form.is_valid():
+		return render(request, 'post.html', {'form': form})
+	# сохраняем текущие данные.
+	comments = form.save(commit=False)
+	comments.author = request.user
+	comments.post = post
+	comments.save()
+	
+	return redirect(
+			'post', 
+			username=username,
+			post_id=post_id,
+		)

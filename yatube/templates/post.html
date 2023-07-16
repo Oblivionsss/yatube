@@ -3,12 +3,6 @@
 {% block header %}Последние обновления на сайте{% endblock %}
 {% block content %}
 
-	{% if msg %}
-    <div class="alert alert-danger" role="alert">
-        {{ msg }}
-        {{ msg1 }}
-    </div>
-	{% endif %}
 
 	<main role="main" class="container">
 	    <div class="row">
@@ -70,7 +64,9 @@
 							</div>
 						</div>
 					</div>
-				</div>
+					{% include 'comments.html' %}
+			</div>
+			
     	</div>
 	</main>
 {% endblock %}

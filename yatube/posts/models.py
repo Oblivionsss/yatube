@@ -40,3 +40,19 @@ class Post(models.Model):
 	
 	def __str__(self):
 		return self.text
+
+
+class Comment(models.Model):
+	"""Структура Комментария
+	Свойства класс:
+	text - содержание комментария
+	created - дата публикации
+	author - автор публикации
+	"""
+	text = models.TextField()
+	post = models.ForeignKey(Post, on_delete=models.CASCADE,
+			  						related_name='comments')
+	author = models.ForeignKey(User, on_delete=models.CASCADE, 
+									related_name = "comments")
+	created = models.DateTimeField("date published",
+									auto_now_add =True)

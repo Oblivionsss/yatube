@@ -19,7 +19,7 @@ class TestNew:
 
 		assert 'form' in response.context, \
 			f'''Проверьте, что вы передали `form` в контекст'''
-		assert len(response.context['form'].fields) == 2, \
+		assert len(response.context['form'].fields) == 3, \
 			f'''Проверьте корректность form, в нем должно быть 2 field'''
 		assert 'group' in response.context['form'].fields, \
 			f'''Проверьте, что поле `group` добавлено в `form`'''
@@ -35,6 +35,10 @@ class TestNew:
 		assert response.context['form'].fields['text'].required, \
 			f'''Проверьте, что в форме `form` на странице `/new/` поле `text` не обязательно'''
 
+		assert 'image' in response.context['form'].fields, \
+			f'''Проверьте, что поле image добавлеон в form'''
+		assert type(response.context['form'].fields['image']) == forms.fields.ImageField, \
+			f'''Проверьте, что в форме `form` на странице `/new/` поле `image` типа `ImageField`'''
 
 	def test_new_view_post(self, user_client, user, group):
 		# Проверка создания поста

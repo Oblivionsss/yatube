@@ -67,8 +67,9 @@ class TestPostEditView:
 
 		assert 'form' in response.context, \
 			f'''Проверьте, что вы передали `form` в контекст'''
-		assert len(response.context['form'].fields) == 2, \
+		assert len(response.context['form'].fields) == 3, \
 			f'''Проверьте корректность form, в нем должно быть 2 field'''
+		
 		assert 'group' in response.context['form'].fields, \
 			f'''Проверьте, что поле `group` добавлено в `form`'''
 		assert type(response.context['form'].fields['group']) == forms.models.ModelChoiceField, \
@@ -82,6 +83,11 @@ class TestPostEditView:
 			f'''Проверьте, что в форме `form` на странице `/new/` поле `text` типа `CharField`'''
 		assert response.context['form'].fields['text'].required, \
 			f'''Проверьте, что в форме `form` на странице `/new/` поле `text` не обязательно'''
+
+		assert 'image' in response.context['form'].fields, \
+			f'''Проверьте, что поле image добавлеон в form'''
+		assert type(response.context['form'].fields['image']) == forms.fields.ImageField, \
+			f'''Проверьте, что в форме `form` на странице `/new/` поле `image` типа `ImageField`'''
 	
 	# Проверка результатотов после редактирования поста
 	@pytest.mark.django_db(transaction=True)
