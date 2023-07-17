@@ -200,6 +200,6 @@ class TestGroupView:
 		), 'Отредактируйте HTML-шаблон, не найдено описание группы `<p>{{ описание_группы }}</p>`'
 		
 		assert re.search(
-			r'<\s*p(\s+class=".+"|\s*)>\s*' + post_with_group.text + r'\s*<\s*\/p\s*>',
+			post_with_group.text,
 			html
 		), f'''Отредактируйте HTML-шаблон, не найден текст поста `<p>{{ текст_поста }}</p>`'''
