@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
-from .models import Post, Group, User, Comment
+from .models import Post, Group, User, Comment, Follow
 from .form import PostForm, CommentForm
 
 from django.views.decorators.cache import cache_page
@@ -89,7 +89,7 @@ def new_post(request, ):
 def profile(request, username):
 	"""
 	Страница - профайл пользователя.
-	user_profile - запрашиваемый пользователь,
+	author - запрашиваемый пользователь,
 	list_post - список постов запрашиваемого пользователя,
 	list_post_paginator - постраничное разбиение постов,
 	page_number - юрл-номер страницы,
@@ -97,10 +97,10 @@ def profile(request, username):
 	count_page - количество записей пользователя username.
 	"""
 	# проверка username
-	user_profile = get_object_or_404(User, username = username)
+	author = get_object_or_404(User, username = username)
 	# список постов запрашиваемого пользователя
 	list_post = (Post.objects
-	     .filter(author=user_profile)
+	     .filter(author=author)
 		 .order_by('-pub_date').all()
 		)
 	# показываем по пять страниц
@@ -109,22 +109,16 @@ def profile(request, username):
 	page_number = request.GET.get('page')
 	# получить записи с нужным смещением
 	page = list_post_paginator.get_page(page_number)
-	#проверка авторизованности просматриваемого поста
-	check_login_author = None
-	if str(request.user) == str(username):
-		check_login_author = True
-
-	count_post = len(list_post)
+	following = Follow.objects.filter(user=request.user, author=author)
 	
 	return render(
 		request,
 		'profile.html',
 		{
 			'page' : page,
-			'count_post' : count_post,
-			'user_profile': user_profile,
-			'list_post_paginator' : list_post_paginator,
-			'check_login_author': check_login_author,
+			'author': author,
+			'following': following,
+			'list_post_paginator' : list_post_paginator
 		}
 	)
 
@@ -241,18 +235,60 @@ def add_comment(request, username, post_id, ):
 			'post', 
 			username=username,
 			post_id=post_id,
-		)
+	)
 
 
 @login_required
 def follow(request):
-	pass
+	"""
+	Отображение последних 11 постов.
+	post_list - временная переменная для всех постов,
+	paginator - постраничное разбиение постов,
+	page_number - текущий номер страницы,
+	page - записи по текущей странице.
+	"""
+	# получить пользователей, на которых подписан user
+	user_follows = (User.objects
+		 .get(pk=request.user.id)
+		 .follower.all().values_list('author'))
+	posts_follows = (Post.objects
+		  .filter(author__in=user_follows)
+		  .order_by('-pub_date'))
+	# показывать по 10 записей на странице.
+	paginator = Paginator(posts_follows, 10)  
+	# переменная в URL с номером запрошенной страницы.
+	page_number = request.GET.get('page')
+	# получить записи с нужным смещением.
+	page = paginator.get_page(page_number)
+	
+	return render(
+		request,
+		'follow.html',
+		{
+			'page': page, 
+			'paginator': paginator,
+		}
+   )
 
 @login_required
-def rpofile_follow(request, username):
-	pass
+def profile_follow(request, username):
+	following = get_object_or_404(User, username=username)
+	follow_exist = Follow.objects.filter(author=following,user=request.user)
+	if len(follow_exist) == 0:
+		Follow.objects.create(author=following,user=request.user)
+	return redirect(
+			'profile', 
+			username=username
+	)
 
 
 @login_required
-def rpofile_unfollow(request, username):
-	pass
+def profile_unfollow(request, username):
+	unfollowing = get_object_or_404(User, username=username)
+	unfollow_exist = Follow.objects.filter(author=unfollowing,user=request.user)
+	if len(unfollow_exist) != 0:
+		Follow.objects.get(author=unfollowing,user=request.user).delete()
+	return redirect(
+			'profile', 
+			username=username
+	)

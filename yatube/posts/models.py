@@ -29,7 +29,7 @@ class Post(models.Model):
 	group - принадлежность к группе.
 	"""
 	text = models.TextField()
-	pub_date = models.DateTimeField(date 'published',
+	pub_date = models.DateTimeField('date published',
 									auto_now_add =True)
 	author = models.ForeignKey(User, on_delete=models.CASCADE, 
 									related_name = 'posts')
@@ -54,7 +54,7 @@ class Comment(models.Model):
 			  						related_name='comments')
 	author = models.ForeignKey(User, on_delete=models.CASCADE, 
 									related_name = 'comments')
-	created = models.DateTimeField(date 'published',
+	created = models.DateTimeField('date published',
 									auto_now_add =True)
 
 
@@ -64,6 +64,8 @@ class Follow(models.Model):
 	author - пользователь на которого подписались.
 	"""
 	user = models.ForeignKey(User, on_delete=models.CASCADE,
-									related_name='follower')
+									related_name='follower',
+									blank=False, null=False)
 	author = models.ForeignKey(User, on_delete=models.CASCADE,
-									related_name='following')
+									related_name='following',
+									blank=False, null=False)
