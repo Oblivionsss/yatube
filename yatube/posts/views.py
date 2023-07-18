@@ -4,7 +4,10 @@ from django.core.paginator import Paginator
 from .models import Post, Group, User, Comment
 from .form import PostForm, CommentForm
 
+from django.views.decorators.cache import cache_page
 
+
+@cache_page(15)
 def index(request):
 	"""
 	Отображение последних 11 постов.
@@ -157,11 +160,20 @@ def post_view(request, username, post_id):
 def post_edit(request, username, post_id):
 	"""
 	Страница редактирования записи.
+	
+	Функция работает нескольких режимах:
+		1. В случае несовпадения пользователя и автора испр. поста- 
+		страница просмотра поста, без возможности редактирования.
+		далее - для совп. пользователя и автора испр. поста:
+		2. Загрузка формы редактирования существующего поста.
+		3. Обработка внесенных изменений и возврат на страницу просмотра поста.
+	
+	profile - испрашиваемый автор,
+	post - испрашиваемый пост,
+	couunt_post - количество страниц.
 	"""
 	profile = get_object_or_404(User, username=username)
 	post = get_object_or_404(Post, pk=post_id, author=profile)
-	count_post = Post.objects.filter(author=profile).all().count()
-	post_edit = True
 
 	if request.user != profile:
 		return redirect(
@@ -194,6 +206,7 @@ def post_edit(request, username, post_id):
 		}
 	)
 
+
 def page_not_found(request, exception):
 	return render(
 		request,
@@ -203,6 +216,7 @@ def page_not_found(request, exception):
 		},
 		status=404
 	)
+
 
 def server_error(request):
 	return render(request, "misc/500.html", status=500)
