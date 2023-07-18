@@ -242,3 +242,17 @@ def add_comment(request, username, post_id, ):
 			username=username,
 			post_id=post_id,
 		)
+
+
+@login_required
+def follow(request):
+	pass
+
+@login_required
+def rpofile_follow(request, username):
+	pass
+
+
+@login_required
+def rpofile_unfollow(request, username):
+	pass
