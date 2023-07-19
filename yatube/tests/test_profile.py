@@ -13,14 +13,14 @@ def search_fields(context, field_type):
 class TestProfileView:
     # Проверка передачи author и его статей в context
     @pytest.mark.django_db(transaction=True)
-    def test_profile_view_get(self, post_with_group, client):
+    def test_profile_view_get(self, post_with_group, user_client):
         try:
-            response = client.get(f'/{post_with_group.author.username}')
+            response = user_client.get(f'/{post_with_group.author.username}')
         except Exception as e:
             assert False, \
             f'''Страница /username/ работает неправильно!, ошибка {e}'''
         if response.status_code in (301, 302):
-            response = client.get(f'/{post_with_group.author.username}/')
+            response = user_client.get(f'/{post_with_group.author.username}/')
         assert response.status_code != 404, \
             f'''Страница `/<username>/` не найдена, проверьте этот адрес в *urls.py*'''
 
@@ -42,12 +42,12 @@ class TestProfileView:
         new_user = get_user_model()(username='new_user_98')
         new_user.save()
         try:
-            response = client.get(f'/{new_user.username}')
+            response = user_client.get(f'/{new_user.username}')
         except Exception as e:
             assert False, \
             f'''Страница /username/ работает неправильно!, ошибка {e}'''
         if response.status_code in (301, 302):
-            response = client.get(f'/{new_user.username}/')
+            response = user_client.get(f'/{new_user.username}/')
         
         page_context = search_fields(response.context, Page)
         assert page_context is not None, \

@@ -251,6 +251,7 @@ def follow(request):
 	user_follows = (User.objects
 		 .get(pk=request.user.id)
 		 .follower.all().values_list('author'))
+
 	posts_follows = (Post.objects
 		  .filter(author__in=user_follows)
 		  .order_by('-pub_date'))

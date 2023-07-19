@@ -35,7 +35,7 @@ class Post(models.Model):
 									related_name = 'posts')
 	group = models.ForeignKey(Group, blank=True, null=True, 
 		                  			on_delete=models.CASCADE)
-	image = models.ImageField(upload_to='posts/', blank=True,
+	image = models.ImageField(upload_to='tests/', blank=True,
 			   						null=True)
 	
 	def __str__(self):
