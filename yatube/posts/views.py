@@ -275,7 +275,7 @@ def follow(request):
 def profile_follow(request, username):
 	following = get_object_or_404(User, username=username)
 	follow_exist = Follow.objects.filter(author=following,user=request.user)
-	if len(follow_exist) == 0:
+	if len(follow_exist) == 0 and request.user.username != username:
 		Follow.objects.create(author=following,user=request.user)
 	return redirect(
 			'profile', 
@@ -287,7 +287,7 @@ def profile_follow(request, username):
 def profile_unfollow(request, username):
 	unfollowing = get_object_or_404(User, username=username)
 	unfollow_exist = Follow.objects.filter(author=unfollowing,user=request.user)
-	if len(unfollow_exist) != 0:
+	if len(unfollow_exist) != 0 and request.user.username != username:
 		Follow.objects.get(author=unfollowing,user=request.user).delete()
 	return redirect(
 			'profile', 
