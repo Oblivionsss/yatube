@@ -1,28 +1,27 @@
-from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
-from .models import Post, Group, User, Comment, Follow
-from .form import PostForm, CommentForm
-
 from django.views.decorators.cache import cache_page
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, get_object_or_404, redirect
+
+from .form import PostForm, CommentForm
+from .models import Post, Group, User, Comment, Follow
 
 
 @cache_page(15)
 def index(request):
 	"""
-	Отображение последних 11 постов.
+	Отображение постов.
 	post_list - временная переменная для всех постов,
 	paginator - постраничное разбиение постов,
 	page_number - текущий номер страницы,
 	page - записи по текущей странице.
 	"""
-	# получить все записи.
+	# все записи.
 	post_list = Post.objects.order_by('-pub_date').all()
-	# показывать по 10 записей на странице.
+
+	# отображение по 10 записей на странице.
 	paginator = Paginator(post_list, 10)  
-	# переменная в URL с номером запрошенной страницы.
 	page_number = request.GET.get('page')
-	# получить записи с нужным смещением.
 	page = paginator.get_page(page_number)
 	
 	return render(
@@ -39,22 +38,21 @@ def group_posts(request, slug):
 	"""
 	Отображение последних 12 постов выбранной группы.
 	group - объект с текущей группой,
-	slug - текущя группа.
+	slug - адрес текущей группы,
+	paginator, age_number, page аналог def_index.
 	"""
-	# получение объекта группы с нужным slug'ом.
+	# Список записей группы `group`.
 	group = get_object_or_404(Group, slug = slug)
-	# Ограничиваем выборку по группе и количеству данных.
-	posts = (Post.objects
-	  .filter(group = group)
-	  .order_by("-pub_date")[:12]
-	)
-	# показывать по 10 записей на странице.
-	paginator = Paginator(posts, 10)
-	# переменная в URL с номером запрошенной страницы.
-	page_number = request.GET.get('page')
-	# получить записи с нужным смещением.
-	page = paginator.get_page(page_number)
 
+	posts = (Post.objects
+		.filter(group = group)
+		.order_by("-pub_date")
+	)
+
+	# отображение по 10 записей на странице.
+	paginator = Paginator(posts, 10)
+	page_number = request.GET.get('page')
+	page = paginator.get_page(page_number)
 
 	return render(
 		request, 
@@ -67,6 +65,7 @@ def group_posts(request, slug):
 	)
 
 
+# авторизованность пользователя.
 @login_required
 def new_post(request, ):
 	"""
@@ -75,10 +74,9 @@ def new_post(request, ):
 	post - форма с заполненными данными, готова к записи в БД.
 	"""
 	form = PostForm(request.POST or None)
-	# проверка на наличие метода is_valid, и валидность.
 	if not form.is_valid():
 		return render(request, 'new_post.html', {'form': form})
-	# сохраняем текущие данные.
+
 	post = form.save(commit=False)
 	post.author = request.user
 	post.save()
@@ -86,29 +84,28 @@ def new_post(request, ):
 	return redirect('index')
 
 
+@login_required
 def profile(request, username):
 	"""
 	Страница - профайл пользователя.
 	author - запрашиваемый пользователь,
 	list_post - список постов запрашиваемого пользователя,
-	list_post_paginator - постраничное разбиение постов,
-	page_number - юрл-номер страницы,
-	page - записи по текущей странице,
-	count_page - количество записей пользователя username.
+	list_post_paginator, page_number, page - постраничное разбиение постов.
 	"""
-	# проверка username
+	# список постов запрашиваемого пользователя.
 	author = get_object_or_404(User, username = username)
-	# список постов запрашиваемого пользователя
+
 	list_post = (Post.objects
-	     .filter(author=author)
-		 .order_by('-pub_date').all()
-		)
-	# показываем по пять страниц
+		.filter(author=author)
+		.order_by('-pub_date').all()
+	)
+	
+	# отображение по 5 записей на странице.
 	list_post_paginator = Paginator(list_post, 5)
-	# переменная url с количеством страниц
 	page_number = request.GET.get('page')
-	# получить записи с нужным смещением
 	page = list_post_paginator.get_page(page_number)
+
+	# информация о подписках.
 	following = Follow.objects.filter(user=request.user, author=author)
 	
 	return render(
@@ -126,19 +123,21 @@ def profile(request, username):
 def post_view(request, username, post_id):
 	"""
 	Страница просмотра записи.
+	post - просматриваемый пост,
+	items - коемментарии к посту,
+	form - форма для создания нового комменатрия,
+	author - авто поста.
 	"""
-	# Проверка корректности адреса
+	# Проверка корректности адреса.
 	post = get_object_or_404(Post, pk=post_id, author__username=username)
 	
-	# подсчет количества постов автора испрашиваемого поста
-	user_profile = get_object_or_404(User, username = username)
-
 	form = CommentForm(request.POST or None)
 
 	items = (Comment.objects
 	 	.filter(post=post)
 		.order_by("-created")
 	)
+
 	return render(
 		request,
 		'post.html',
@@ -156,11 +155,11 @@ def post_edit(request, username, post_id):
 	Страница редактирования записи.
 	
 	Функция работает нескольких режимах:
-		1. В случае несовпадения пользователя и автора испр. поста- 
+		# 1. В случае несовпадения пользователя и автора испр. поста- 
 		страница просмотра поста, без возможности редактирования.
 		далее - для совп. пользователя и автора испр. поста:
-		2. Загрузка формы редактирования существующего поста.
-		3. Обработка внесенных изменений и возврат на страницу просмотра поста.
+		# 2. Обработка внесенных изменений и возврат на страницу просмотра поста.
+		# 3. Загрузка формы редактирования существующего поста.
 	
 	profile - испрашиваемый автор,
 	post - испрашиваемый пост,
@@ -169,19 +168,21 @@ def post_edit(request, username, post_id):
 	profile = get_object_or_404(User, username=username)
 	post = get_object_or_404(Post, pk=post_id, author=profile)
 
+	# 1
 	if request.user != profile:
 		return redirect(
 			'post', 
 			username=username,
 			post_id=post_id,
 		)
-	
+	 
 	form = PostForm(
 		request.POST or None,
 		files=request.FILES or None,
 		instance=post,
 		)
 	
+	# 2
 	if request.method == 'POST':
 		if form.is_valid():
 			form.save()
@@ -191,6 +192,7 @@ def post_edit(request, username, post_id):
 				post_id=post_id,
 			)
 	
+	# 3
 	return render(
 		request,
 		'new_post.html',
@@ -217,15 +219,19 @@ def server_error(request):
 
 
 @login_required
-def add_comment(request, username, post_id, ):
-	# Проверка существования поста, к которому будет добавлен кооментарий
+def add_comment(request, username, post_id ):
+	"""
+	Добавление комментария.
+	post - пост, к которому добавляется комментарий,
+	form - форма комментария с текстом,
+	comments - форма комментария - post, с автором и привязкой к посту. 
+	"""
 	post = get_object_or_404(Post, pk=post_id, author__username=username)
 
 	form = CommentForm(request.POST or None)
-	# проверка на наличие метода is_valid, и валидность.
 	if not form.is_valid():
 		return render(request, 'post.html', {'form': form})
-	# сохраняем текущие данные.
+
 	comments = form.save(commit=False)
 	comments.author = request.user
 	comments.post = post
@@ -241,13 +247,11 @@ def add_comment(request, username, post_id, ):
 @login_required
 def follow(request):
 	"""
-	Отображение последних 11 постов.
-	post_list - временная переменная для всех постов,
-	paginator - постраничное разбиение постов,
-	page_number - текущий номер страницы,
-	page - записи по текущей странице.
+	Отображение постов из списка подписок.
+	user_follows - список авторов, на которых подписан user,
+	posts_follows - список постов авторов, на которых подписан user,
+	paginator, page_number, page - постраничное разбиение постов.
 	"""
-	# получить пользователей, на которых подписан user
 	user_follows = (User.objects
 		 .get(pk=request.user.id)
 		 .follower.all().values_list('author'))
@@ -255,11 +259,9 @@ def follow(request):
 	posts_follows = (Post.objects
 		  .filter(author__in=user_follows)
 		  .order_by('-pub_date'))
-	# показывать по 10 записей на странице.
+	
 	paginator = Paginator(posts_follows, 10)  
-	# переменная в URL с номером запрошенной страницы.
 	page_number = request.GET.get('page')
-	# получить записи с нужным смещением.
 	page = paginator.get_page(page_number)
 	
 	return render(
@@ -269,13 +271,19 @@ def follow(request):
 			'page': page, 
 			'paginator': paginator,
 		}
-   )
+	)
+
 
 @login_required
 def profile_follow(request, username):
+	"""
+	Подписка на автора.
+	following - автор, на которого подписываемся,
+	follow_exist - объект связка подписчика и автора.
+	"""
 	following = get_object_or_404(User, username=username)
 	follow_exist = Follow.objects.filter(author=following,user=request.user)
-	if len(follow_exist) == 0 and request.user.username != username:
+	if not follow_exist and request.user.username != username:
 		Follow.objects.create(author=following,user=request.user)
 	return redirect(
 			'profile', 
@@ -285,9 +293,14 @@ def profile_follow(request, username):
 
 @login_required
 def profile_unfollow(request, username):
+	"""	
+	Отписка от автора.
+	following - автор, на которого подписываемся,
+	follow_exist - объект связка подписчика и автора.
+	"""
 	unfollowing = get_object_or_404(User, username=username)
 	unfollow_exist = Follow.objects.filter(author=unfollowing,user=request.user)
-	if len(unfollow_exist) != 0 and request.user.username != username:
+	if unfollow_exist and request.user.username != username:
 		Follow.objects.get(author=unfollowing,user=request.user).delete()
 	return redirect(
 			'profile', 

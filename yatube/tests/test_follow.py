@@ -1,6 +1,7 @@
 import pytest
 
 from django.contrib.auth.models import User
+from django.core.cache import cache
 
 from posts.models import Follow, Post
 
@@ -11,6 +12,7 @@ class TestFollow:
 	# После подписки проверяем following
 	@pytest.mark.django_db(transaction=True)
 	def test_follow_auth_user(self, client):
+		cache.clear()
 		# Пользователь, на которого будем подисываться, user1
 		user_following = User.objects.create(username='sarah_conor',
 			email='conor@gmail.com',
@@ -141,8 +143,10 @@ class TestFollowView:
 		response_1 = client.get('/')
 		assert response_1.status_code == 200, \
 			f'''Проверьте, что Вы авторизовались `user_follower1`'''
-		assert post_1.text and post_2.text in response_1.content.decode(), \
-			f'''Проверьте, что вы создали правильно посты'''
+		assert post_1.text in str(response_1.content.decode()), \
+			f'''{post_1.text} post_1 не найден в content`е '''
+		assert post_2.text in str(response_1.content.decode()), \
+			f'''{post_2.text} post_1 не найден в content`е '''
 		
 		# попдисываемся на пользователя user_following
 		try:
@@ -174,15 +178,19 @@ class TestFollowView:
 
 		assert response_1.status_code == 200, \
 			f'''Проверьте, что Вы авторизовались `user_follower1`'''
-		assert post_1.text and post_2.text in response_1.content.decode(), \
-			f'''Проверьте, что вы создали правильно посты'''
+		assert post_1.text in str(response_1.content.decode()), \
+			f'''{post_1.text} post_1 не найден в content`е '''
+		assert post_2.text in str(response_1.content.decode()), \
+			f'''{post_2.text} post_1 не найден в content`е '''
 		
 		client.force_login(user_follower2)
 		response_1 = client.get('/')
 		assert response_1.status_code == 200, \
 			f'''Проверьте, что Вы авторизовались `user_follower1`'''
-		assert post_1.text and post_2.text in response_1.content.decode(), \
-			f'''Проверьте, что вы создали правильно посты'''
+		assert post_1.text in str(response_1.content.decode()), \
+			f'''{post_1.text} post_1 не найден в content`е '''
+		assert post_2.text in str(response_1.content.decode()), \
+			f'''{post_2.text} post_1 не найден в content`е '''
 		
 		# проверка, что пользователь user_follower2 ни на кого не подписан
 		assert user_follower2.follower.count() == 0 and user_follower2.following.count() == 0, \
